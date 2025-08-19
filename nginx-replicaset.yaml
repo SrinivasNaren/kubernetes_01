@@ -1,0 +1,21 @@
+# The key is to remember the structure (apiVersion → kind → metadata → spec).
+
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: nginx-replicaset
+spec:
+  replicas: 3   # 👈 We want 3 Pods
+  selector:
+    matchLabels:
+      app: nginx
+  template:     # 👇 Pod template (like we wrote in Step 1)
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:latest
+          ports:
+            - containerPort: 80

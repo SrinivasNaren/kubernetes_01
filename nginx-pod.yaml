@@ -9,6 +9,7 @@ spec:
       ports:
         - containerPort: 80
       resources:
+      
         requests:
           memory: "64Mi"
           cpu: "250m"
