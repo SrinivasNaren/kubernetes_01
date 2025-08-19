@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+spec:
+  replicas: 3   # We want 3 Pods running
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+        resources:                  # 👈 Added this section
+          requests:
+            memory: "256Mi"         # Minimum memory guaranteed
+            cpu: "250m"             # Minimum CPU guaranteed
+          limits:
+            memory: "512Mi"         # Max memory container can use
+            cpu: "500m"             # Max CPU container can use
