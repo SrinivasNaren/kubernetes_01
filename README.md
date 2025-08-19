@@ -1,35 +1,34 @@
 
-# **1️⃣ Folder Structure**
 
-```
-minikube-nginx-demo/
-├── README.md
-├── pod/
-│   └── nginx-pod.yaml
-├── service/
-│   └── nginx-svc.yaml
-└── notes/
-    └── commands.txt
-```
+# 🐳 Kubernetes Practice Repo
 
-**Explanation:**
-
-* `pod/` → contains pod YAML files.
-* `service/` → contains service YAML files.
-* `notes/` → contains useful commands you used during setup.
-* `README.md` → detailed guide for anyone to replicate your setup.
+**Practice Kubernetes core concepts: Pods, ReplicaSets, and Deployments.**
 
 ---
 
-# **2️⃣ Pod YAML (`pod/nginx-pod.yaml`)**
+## 📂 Contents
+
+| Folder         | File                    | Description                                         |
+| -------------- | ----------------------- | --------------------------------------------------- |
+| `pods/`        | `nginx-pod.yaml`        | Basic Pod definition                                |
+| `replicasets/` | `nginx-replicaset.yaml` | ReplicaSet to manage multiple Pods                  |
+| `deployments/` | `nginx-deployment.yaml` | Deployment managing ReplicaSet with rolling updates |
+
+---
+
+## 📌 Key Concepts
+
+### **Pod**
+
+* Smallest deployable unit in Kubernetes.
+* Runs **one or more containers**.
+* YAML defines **container image, ports**, and other configs.
 
 ```yaml
-apiVersion: v1
-kind: Pod
+apiVersion: v1        # Kubernetes API version
+kind: Pod             # Object type
 metadata:
-  name: nginx
-  labels:
-    app: nginx
+  name: nginx-pod     # Pod name
 spec:
   containers:
   - name: nginx
@@ -40,126 +39,90 @@ spec:
 
 ---
 
-# **3️⃣ Service YAML (`service/nginx-svc.yaml`)**
+### **ReplicaSet**
+
+* Ensures a **fixed number of identical Pods** are running.
+* Self-healing: replaces **crashed Pods** automatically.
+* **Selector labels** must match Pod template.
 
 ```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: nginx
-spec:
-  selector:
+replicas: 3               # Always 3 Pods
+selector:
+  matchLabels:
+    app: nginx            # Select Pods to manage
+template:
+  metadata:
+    labels:
+      app: nginx
+  spec:
+    containers:
+    - name: nginx
+      image: nginx:latest
+      ports:
+      - containerPort: 80
+```
+
+---
+
+### **Deployment**
+
+* Manages **ReplicaSets**.
+* Adds **rolling updates, rollback**, and versioned history.
+* Deployment → ReplicaSets → Pods.
+
+```yaml
+replicas: 3
+selector:
+  matchLabels:
     app: nginx
-  type: NodePort
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 80
+template:
+  metadata:
+    labels:
+      app: nginx
+  spec:
+    containers:
+    - name: nginx
+      image: nginx:latest
+      ports:
+      - containerPort: 80
 ```
 
 ---
 
-# **4️⃣ Notes (`notes/commands.txt`)**
+## ⚡ Commands to Practice
 
+### **Pod**
+
+```bash
+kubectl apply -f pods/nginx-pod.yaml
+kubectl get pods
+kubectl describe pod nginx-pod
+kubectl delete pod nginx-pod
 ```
-# Start Minikube
-minikube start --driver=docker --kubernetes-version=v1.33.1
 
-# Check status
-minikube status
-kubectl get nodes
-kubectl get pods -A
+### **ReplicaSet**
 
-# Create pod
-kubectl apply -f pod/nginx-pod.yaml
-kubectl get pods --show-labels
+```bash
+kubectl apply -f replicasets/nginx-replicaset.yaml
+kubectl get rs
+kubectl get pods -l app=nginx
+kubectl delete pod -l app=nginx --field-selector=status.phase=Running
+```
 
-# Expose pod
-kubectl apply -f service/nginx-svc.yaml
-kubectl get svc
+### **Deployment**
 
-# Access service URL
-minikube service nginx
-
-# Exec into pod
-kubectl exec -it nginx -- /bin/bash
-exit
+```bash
+kubectl apply -f deployments/nginx-deployment.yaml
+kubectl get deployments
+kubectl get pods -l app=nginx
+kubectl rollout status deployment/nginx-deployment
+kubectl rollout undo deployment/nginx-deployment
 ```
 
 ---
 
-# **5️⃣ README.md**
+## 📖 Notes
 
-```markdown
-# Minikube Nginx Demo
-
-This repository demonstrates a **simple Nginx Pod and Service running on Minikube**.  
-It includes the pod and service YAML files and a list of commands to manage Kubernetes resources.
-
-## Prerequisites
-
-- Minikube installed (Windows/Linux)
-- Docker installed and running
-- kubectl installed
-
-## Folder Structure
-
-```
-
-minikube-nginx-demo/
-├── README.md
-├── pod/
-│   └── nginx-pod.yaml
-├── service/
-│   └── nginx-svc.yaml
-└── notes/
-└── commands.txt
-
-````
-
-## Steps
-
-1. **Start Minikube**
-
-```bash
-minikube start --driver=docker --kubernetes-version=v1.33.1
-````
-
-2. **Deploy Nginx Pod**
-
-```bash
-kubectl apply -f pod/nginx-pod.yaml
-kubectl get pods --show-labels
-```
-
-3. **Expose Pod as NodePort Service**
-
-```bash
-kubectl apply -f service/nginx-svc.yaml
-kubectl get svc
-```
-
-4. **Access the Service**
-
-```bash
-minikube service nginx
-```
-
-5. **Optional: Exec into Pod**
-
-```bash
-kubectl exec -it nginx -- /bin/bash
-```
-
-6. **Stop & Delete Minikube**
-
-```bash
-minikube delete --all --purge
-```
-
-## Notes
-
-* Pod must have **labels** for services to route traffic.
-* NodePort exposes the service outside the cluster.
-* YAML files can be version controlled and reused.
-
+* Always ensure **labels and selectors match**.
+* Use **resources** in containers to avoid noisy neighbor issues.
+* Use **rollout undo** to rollback bad updates in Deployments.
